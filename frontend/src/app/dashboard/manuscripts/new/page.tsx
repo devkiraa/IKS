@@ -227,10 +227,10 @@ export default function NewManuscriptPage() {
     // Final submit - navigate to manuscript page
     const handleFinalSubmit = () => {
         if (uploadedManuscriptId) {
-            setSuccess('Manuscript uploaded successfully!');
+            setSuccess('Manuscript submitted successfully! It will be reviewed by our team before being published to the archive.');
             setTimeout(() => {
                 router.push(`/dashboard/manuscripts/${uploadedManuscriptId}`);
-            }, 1500);
+            }, 2000);
         }
     };
 

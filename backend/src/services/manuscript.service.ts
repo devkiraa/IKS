@@ -51,7 +51,7 @@ export async function createManuscript(
     const manuscript = await Manuscript.create({
         ...data,
         ownerId: userId,
-        status: 'draft',
+        status: 'review', // New manuscripts need reviewer approval before being visible
     });
 
     return {

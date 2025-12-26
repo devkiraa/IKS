@@ -86,13 +86,14 @@ const EditIcon = () => (
 // Manuscript Card Component
 const ManuscriptCard = ({ manuscript }: { manuscript: Manuscript }) => {
     const statusConfig = {
-        draft: { bg: '#f1f5f9', color: '#475569', label: 'Draft' },
+        draft: { bg: '#fee2e2', color: '#991b1b', label: 'Needs Revision' },
+        review: { bg: '#fef3c7', color: '#b45309', label: 'Pending Review' },
         pending: { bg: '#fef3c7', color: '#b45309', label: 'Pending' },
         published: { bg: '#dcfce7', color: '#166534', label: 'Published' },
         archived: { bg: '#f1f5f9', color: '#64748b', label: 'Archived' },
     };
 
-    const config = statusConfig[manuscript.status as keyof typeof statusConfig] || statusConfig.draft;
+    const config = statusConfig[manuscript.status as keyof typeof statusConfig] || statusConfig.review;
 
     return (
         <div style={{

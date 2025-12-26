@@ -2,6 +2,7 @@
 
 import React, { useEffect, useState } from 'react';
 import Link from 'next/link';
+import { useSearchParams } from 'next/navigation';
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api';
 
@@ -446,8 +447,11 @@ const LoadingSkeleton = () => (
 );
 
 export default function ManuscriptsPage() {
+    const searchParams = useSearchParams();
+    const initialQuery = searchParams.get('q') || '';
+
     const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
-    const [searchQuery, setSearchQuery] = useState('');
+    const [searchQuery, setSearchQuery] = useState(initialQuery);
     const [selectedCategory, setSelectedCategory] = useState('All');
     const [selectedLanguage, setSelectedLanguage] = useState('All');
     const [showFilters, setShowFilters] = useState(false);
@@ -472,7 +476,7 @@ export default function ManuscriptsPage() {
     };
 
     // Fetch manuscripts
-    const fetchManuscripts = async (page = 1) => {
+    const fetchManuscripts = async (page = 1, query = searchQuery) => {
         try {
             setLoading(true);
             setError('');
@@ -481,8 +485,8 @@ export default function ManuscriptsPage() {
             params.append('page', String(page));
             params.append('limit', '12');
 
-            if (searchQuery) {
-                params.append('q', searchQuery);
+            if (query) {
+                params.append('q', query);
             }
             if (selectedCategory !== 'All') {
                 params.append('category', selectedCategory);
@@ -510,8 +514,9 @@ export default function ManuscriptsPage() {
 
     useEffect(() => {
         fetchFilters();
-        fetchManuscripts();
-    }, []);
+        // Use initial query from URL params
+        fetchManuscripts(1, initialQuery);
+    }, [initialQuery]);
 
     useEffect(() => {
         setCurrentPage(1);

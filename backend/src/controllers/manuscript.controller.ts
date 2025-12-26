@@ -337,8 +337,29 @@ export async function viewFile(req: Request, res: Response): Promise<void> {
     const { id, fileIndex } = req.params;
     const Manuscript = getManuscriptModel();
 
-    // Check access
-    const access = await accessService.checkAccess(id, req.user.userId, 'VIEW_CONTENT');
+    // First get the manuscript to check ownership
+    const manuscript = await Manuscript.findById(id);
+    if (!manuscript) {
+        res.status(404).json({
+            success: false,
+            error: 'Manuscript not found',
+            code: 'NOT_FOUND',
+        });
+        return;
+    }
+
+    // Check if user is the owner (owners always have full access)
+    const isOwner = manuscript.ownerId === req.user.userId;
+
+    // Check if user is a reviewer or admin (they can view files for review)
+    const user = await userRepo.findById(req.user.userId);
+    const isReviewer = user?.role === 'REVIEWER' || user?.role === 'ADMIN';
+
+    // Check access (only if not owner and not reviewer)
+    let access = { hasAccess: isOwner || isReviewer, watermarkId: undefined as string | undefined };
+    if (!isOwner && !isReviewer) {
+        access = await accessService.checkAccess(id, req.user.userId, 'VIEW_CONTENT');
+    }
 
     if (!access.hasAccess) {
         res.status(403).json({
@@ -348,10 +369,8 @@ export async function viewFile(req: Request, res: Response): Promise<void> {
         });
         return;
     }
-
-    // Get manuscript
-    const manuscript = await Manuscript.findById(id);
-    if (!manuscript || !manuscript.files[parseInt(fileIndex, 10)]) {
+    // Check file exists
+    if (!manuscript.files[parseInt(fileIndex, 10)]) {
         res.status(404).json({
             success: false,
             error: 'File not found',
@@ -369,9 +388,7 @@ export async function viewFile(req: Request, res: Response): Promise<void> {
         // Decrypt file
         const decryptedContent = await decryptFile(encryptedContent, file.checksum);
 
-        // Apply watermark for viewing
-        const user = await userRepo.findById(req.user.userId);
-
+        // Apply watermark for viewing (user is already fetched above)
         let finalContent = decryptedContent;
 
         if (access.watermarkId && user) {
@@ -418,8 +435,25 @@ export async function downloadFile(req: Request, res: Response): Promise<void> {
     const { id, fileIndex } = req.params;
     const Manuscript = getManuscriptModel();
 
-    // Check download access
-    const access = await accessService.checkAccess(id, req.user.userId, 'DOWNLOAD');
+    // First get the manuscript to check ownership
+    const manuscript = await Manuscript.findById(id);
+    if (!manuscript) {
+        res.status(404).json({
+            success: false,
+            error: 'Manuscript not found',
+            code: 'NOT_FOUND',
+        });
+        return;
+    }
+
+    // Check if user is the owner (owners always have full access)
+    const isOwner = manuscript.ownerId === req.user.userId;
+
+    // Check download access (only if not owner)
+    let access = { hasAccess: isOwner, watermarkId: undefined as string | undefined };
+    if (!isOwner) {
+        access = await accessService.checkAccess(id, req.user.userId, 'DOWNLOAD');
+    }
 
     if (!access.hasAccess) {
         res.status(403).json({
@@ -430,9 +464,8 @@ export async function downloadFile(req: Request, res: Response): Promise<void> {
         return;
     }
 
-    // Get manuscript
-    const manuscript = await Manuscript.findById(id);
-    if (!manuscript || !manuscript.files[parseInt(fileIndex, 10)]) {
+    // Check file exists
+    if (!manuscript.files[parseInt(fileIndex, 10)]) {
         res.status(404).json({
             success: false,
             error: 'File not found',

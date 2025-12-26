@@ -174,14 +174,68 @@ export default function ManuscriptDetailPage() {
         }
     };
 
-    const handleViewFile = (fileIndex: number) => {
-        // Open in new tab using the watermarked view endpoint
-        window.open(getApiUrl(`/manuscripts/${id}/view/${fileIndex}`), '_blank');
+    const handleViewFile = async (fileIndex: number) => {
+        try {
+            const accessToken = localStorage.getItem('accessToken');
+            const response = await fetch(getApiUrl(`/manuscripts/${id}/view/${fileIndex}`), {
+                headers: {
+                    'Authorization': `Bearer ${accessToken}`,
+                },
+            });
+
+            if (!response.ok) {
+                const error = await response.json();
+                throw new Error(error.error || 'Failed to load file');
+            }
+
+            // Get the blob and create a URL for it
+            const blob = await response.blob();
+            const url = URL.createObjectURL(blob);
+            window.open(url, '_blank');
+        } catch (err: any) {
+            console.error('View file error:', err);
+            setError(err.message || 'Failed to view file');
+        }
     };
 
-    const handleDownloadFile = (fileIndex: number) => {
-        // Simple download trigger
-        window.location.href = getApiUrl(`/manuscripts/${id}/download/${fileIndex}`);
+    const handleDownloadFile = async (fileIndex: number) => {
+        try {
+            const accessToken = localStorage.getItem('accessToken');
+            const response = await fetch(getApiUrl(`/manuscripts/${id}/download/${fileIndex}`), {
+                headers: {
+                    'Authorization': `Bearer ${accessToken}`,
+                },
+            });
+
+            if (!response.ok) {
+                const error = await response.json();
+                throw new Error(error.error || 'Failed to download file');
+            }
+
+            // Get the blob and trigger download
+            const blob = await response.blob();
+            const url = URL.createObjectURL(blob);
+
+            // Get filename from Content-Disposition header or use default
+            const contentDisposition = response.headers.get('Content-Disposition');
+            let filename = `manuscript-file-${fileIndex}`;
+            if (contentDisposition) {
+                const match = contentDisposition.match(/filename="?(.+?)"?$/);
+                if (match) filename = match[1];
+            }
+
+            // Create download link and trigger it
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = filename;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+        } catch (err: any) {
+            console.error('Download file error:', err);
+            setError(err.message || 'Failed to download file');
+        }
     };
 
     if (loading) {
@@ -235,7 +289,7 @@ export default function ManuscriptDetailPage() {
                             </p>
                         )}
                     </div>
-                    <div style={{ display: 'flex', gap: '0.5rem' }}>
+                    <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
                         {isOwner && (
                             <span style={{
                                 padding: '0.375rem 0.75rem',
@@ -248,10 +302,47 @@ export default function ManuscriptDetailPage() {
                                 YOUR MANUSCRIPT
                             </span>
                         )}
+                        {/* Status Badge */}
+                        {manuscript.status === 'review' && (
+                            <span style={{
+                                padding: '0.375rem 0.75rem',
+                                background: '#fef3c7',
+                                color: '#92400e',
+                                borderRadius: '999px',
+                                fontSize: '0.8125rem',
+                                fontWeight: 600
+                            }}>
+                                PENDING REVIEW
+                            </span>
+                        )}
+                        {manuscript.status === 'published' && (
+                            <span style={{
+                                padding: '0.375rem 0.75rem',
+                                background: '#dcfce7',
+                                color: '#166534',
+                                borderRadius: '999px',
+                                fontSize: '0.8125rem',
+                                fontWeight: 600
+                            }}>
+                                PUBLISHED
+                            </span>
+                        )}
+                        {manuscript.status === 'draft' && (
+                            <span style={{
+                                padding: '0.375rem 0.75rem',
+                                background: '#fee2e2',
+                                color: '#991b1b',
+                                borderRadius: '999px',
+                                fontSize: '0.8125rem',
+                                fontWeight: 600
+                            }}>
+                                DRAFT
+                            </span>
+                        )}
                         <span style={{
                             padding: '0.375rem 0.75rem',
-                            background: manuscript.visibility === 'public' ? '#dcfce7' : '#fef3c7',
-                            color: manuscript.visibility === 'public' ? '#166534' : '#92400e',
+                            background: manuscript.visibility === 'public' ? '#dcfce7' : '#f1f5f9',
+                            color: manuscript.visibility === 'public' ? '#166534' : '#64748b',
                             borderRadius: '999px',
                             fontSize: '0.8125rem',
                             fontWeight: 600
@@ -271,6 +362,65 @@ export default function ManuscriptDetailPage() {
             {success && (
                 <div style={{ padding: '1rem', background: '#dcfce7', color: '#166534', borderRadius: '0.5rem', fontSize: '0.875rem' }}>
                     {success}
+                </div>
+            )}
+
+            {/* Pending Review Notice for Owner */}
+            {isOwner && manuscript.status === 'review' && (
+                <div style={{
+                    padding: '1.25rem',
+                    background: '#fffbeb',
+                    border: '1px solid #fde68a',
+                    borderRadius: '12px',
+                    display: 'flex',
+                    gap: '1rem',
+                    alignItems: 'flex-start'
+                }}>
+                    <div style={{ color: '#d97706', flexShrink: 0 }}>
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                            <circle cx="12" cy="12" r="10" />
+                            <line x1="12" y1="16" x2="12" y2="12" />
+                            <line x1="12" y1="8" x2="12.01" y2="8" />
+                        </svg>
+                    </div>
+                    <div>
+                        <div style={{ fontWeight: 600, color: '#92400e', marginBottom: '0.25rem' }}>
+                            Pending Review
+                        </div>
+                        <div style={{ fontSize: '0.875rem', color: '#b45309' }}>
+                            Your manuscript has been submitted and is currently being reviewed by our team.
+                            Once approved, it will be published and visible in the archive for everyone to discover.
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {/* Rejected/Draft Notice for Owner */}
+            {isOwner && manuscript.status === 'draft' && (
+                <div style={{
+                    padding: '1.25rem',
+                    background: '#fef2f2',
+                    border: '1px solid #fecaca',
+                    borderRadius: '12px',
+                    display: 'flex',
+                    gap: '1rem',
+                    alignItems: 'flex-start'
+                }}>
+                    <div style={{ color: '#dc2626', flexShrink: 0 }}>
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                            <circle cx="12" cy="12" r="10" />
+                            <line x1="12" y1="8" x2="12" y2="12" />
+                            <line x1="12" y1="16" x2="12.01" y2="16" />
+                        </svg>
+                    </div>
+                    <div>
+                        <div style={{ fontWeight: 600, color: '#991b1b', marginBottom: '0.25rem' }}>
+                            Needs Revision
+                        </div>
+                        <div style={{ fontSize: '0.875rem', color: '#b91c1c' }}>
+                            This manuscript has been sent back for revision. Please review the feedback and make necessary updates before resubmitting.
+                        </div>
+                    </div>
                 </div>
             )}
 

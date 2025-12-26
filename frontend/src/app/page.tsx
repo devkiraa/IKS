@@ -491,10 +491,14 @@ export default function Home() {
           </div>
 
           {/* Search Bar */}
-          <div style={{
-            maxWidth: '600px',
-            margin: '3rem auto 0',
-          }}>
+          <form
+            action="/manuscripts"
+            method="get"
+            style={{
+              maxWidth: '600px',
+              margin: '3rem auto 0',
+            }}
+          >
             <div style={{
               display: 'flex',
               alignItems: 'center',
@@ -512,6 +516,7 @@ export default function Home() {
               </div>
               <input
                 type="text"
+                name="q"
                 placeholder="Search manuscripts, authors, or topics..."
                 style={{
                   flex: 1,
@@ -523,21 +528,24 @@ export default function Home() {
                   padding: '0.75rem 0',
                 }}
               />
-              <button style={{
-                padding: '0.625rem 1.25rem',
-                fontSize: '0.875rem',
-                fontWeight: 500,
-                color: 'white',
-                background: '#059669',
-                border: 'none',
-                borderRadius: '8px',
-                cursor: 'pointer',
-                transition: 'all 0.15s',
-              }}>
+              <button
+                type="submit"
+                style={{
+                  padding: '0.625rem 1.25rem',
+                  fontSize: '0.875rem',
+                  fontWeight: 500,
+                  color: 'white',
+                  background: '#059669',
+                  border: 'none',
+                  borderRadius: '8px',
+                  cursor: 'pointer',
+                  transition: 'all 0.15s',
+                }}
+              >
                 Search
               </button>
             </div>
-          </div>
+          </form>
         </div>
       </section>
 

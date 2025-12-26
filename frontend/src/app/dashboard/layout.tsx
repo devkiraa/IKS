@@ -156,7 +156,7 @@ const getNavSections = (role: UserRole): NavSection[] => {
                 { href: '/dashboard/admin/verifications', label: 'ID Verifications', icon: <ShieldIcon /> },
                 { href: '/dashboard/admin/manuscripts', label: 'All Manuscripts', icon: <ArchiveIcon /> },
                 { href: '/dashboard/admin/requests', label: 'Access Requests', icon: <RequestsIcon /> },
-                { href: '/dashboard/admin/reviews', label: 'Review Queue', icon: <ReviewIcon />, badge: 'Active' },
+                { href: '/dashboard/review', label: 'Review Queue', icon: <ReviewIcon />, badge: 'Active' },
             ],
         });
         sections.push({
@@ -182,9 +182,8 @@ const getNavSections = (role: UserRole): NavSection[] => {
         sections.push({
             title: 'Review Tasks',
             items: [
-                { href: '/dashboard/review/manuscripts', label: 'Review Manuscripts', icon: <ReviewIcon />, badge: 'Pending' },
-                { href: '/dashboard/review/requests', label: 'Review Requests', icon: <ClipboardIcon /> },
-                { href: '/dashboard/review/history', label: 'Review History', icon: <ActivityIcon /> },
+                { href: '/dashboard/review', label: 'Review Queue', icon: <ReviewIcon />, badge: 'Pending' },
+                { href: '/dashboard/admin/requests', label: 'Access Requests', icon: <ClipboardIcon /> },
             ],
         });
         return sections;

@@ -115,43 +115,51 @@ export default function RegisterPage() {
                 display: 'flex',
                 flexDirection: 'column',
                 justifyContent: 'center',
+                alignItems: 'center',
                 padding: '3rem',
-                background: 'linear-gradient(135deg, #059669 0%, #047857 100%)',
-                color: 'white',
+                background: '#f8fafc',
+                borderRight: '1px solid #e5e7eb',
             }}>
-                <div style={{ maxWidth: '440px' }}>
+                <div style={{ maxWidth: '400px', textAlign: 'center' }}>
                     <div style={{
-                        width: '48px',
-                        height: '48px',
-                        background: 'rgba(255, 255, 255, 0.2)',
-                        borderRadius: '12px',
+                        width: '64px',
+                        height: '64px',
+                        background: '#059669',
+                        borderRadius: '16px',
                         display: 'flex',
                         alignItems: 'center',
                         justifyContent: 'center',
-                        fontSize: '18px',
+                        fontSize: '24px',
                         fontWeight: 700,
-                        marginBottom: '2rem',
+                        color: 'white',
+                        margin: '0 auto 2rem',
                     }}>
                         IKS
                     </div>
                     <h1 style={{
-                        fontSize: '2.5rem',
-                        fontWeight: 700,
-                        lineHeight: 1.2,
-                        marginBottom: '1.5rem',
+                        fontSize: '1.75rem',
+                        fontWeight: 600,
+                        color: '#0f172a',
+                        lineHeight: 1.3,
+                        marginBottom: '1rem',
                     }}>
                         Join the Research Community
                     </h1>
                     <p style={{
-                        fontSize: '1.125rem',
-                        opacity: 0.9,
-                        lineHeight: 1.7,
+                        fontSize: '1rem',
+                        color: '#64748b',
+                        lineHeight: 1.6,
                         marginBottom: '2rem',
                     }}>
                         Create your account to access our comprehensive digital archive and collaborate with researchers worldwide.
                     </p>
 
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+                    <div style={{
+                        display: 'flex',
+                        flexDirection: 'column',
+                        gap: '0.75rem',
+                        textAlign: 'left',
+                    }}>
                         {[
                             'Access 12,000+ digitized manuscripts',
                             'Collaborate with global researchers',
@@ -162,16 +170,19 @@ export default function RegisterPage() {
                                 display: 'flex',
                                 alignItems: 'center',
                                 gap: '0.75rem',
-                                fontSize: '0.9375rem',
+                                fontSize: '0.875rem',
+                                color: '#475569',
                             }}>
                                 <div style={{
-                                    width: '24px',
-                                    height: '24px',
-                                    background: 'rgba(255, 255, 255, 0.2)',
+                                    width: '20px',
+                                    height: '20px',
+                                    background: '#ecfdf5',
                                     borderRadius: '50%',
                                     display: 'flex',
                                     alignItems: 'center',
                                     justifyContent: 'center',
+                                    color: '#059669',
+                                    flexShrink: 0,
                                 }}>
                                     <CheckIcon />
                                 </div>

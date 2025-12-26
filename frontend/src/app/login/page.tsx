@@ -91,37 +91,40 @@ export default function LoginPage() {
                 display: 'flex',
                 flexDirection: 'column',
                 justifyContent: 'center',
+                alignItems: 'center',
                 padding: '3rem',
-                background: 'linear-gradient(135deg, #059669 0%, #047857 100%)',
-                color: 'white',
+                background: '#f8fafc',
+                borderRight: '1px solid #e5e7eb',
             }}>
-                <div style={{ maxWidth: '440px' }}>
+                <div style={{ maxWidth: '400px', textAlign: 'center' }}>
                     <div style={{
-                        width: '48px',
-                        height: '48px',
-                        background: 'rgba(255, 255, 255, 0.2)',
-                        borderRadius: '12px',
+                        width: '64px',
+                        height: '64px',
+                        background: '#059669',
+                        borderRadius: '16px',
                         display: 'flex',
                         alignItems: 'center',
                         justifyContent: 'center',
-                        fontSize: '18px',
+                        fontSize: '24px',
                         fontWeight: 700,
-                        marginBottom: '2rem',
+                        color: 'white',
+                        margin: '0 auto 2rem',
                     }}>
                         IKS
                     </div>
                     <h1 style={{
-                        fontSize: '2.5rem',
-                        fontWeight: 700,
-                        lineHeight: 1.2,
-                        marginBottom: '1.5rem',
+                        fontSize: '1.75rem',
+                        fontWeight: 600,
+                        color: '#0f172a',
+                        lineHeight: 1.3,
+                        marginBottom: '1rem',
                     }}>
                         Indigenous Knowledge Systems
                     </h1>
                     <p style={{
-                        fontSize: '1.125rem',
-                        opacity: 0.9,
-                        lineHeight: 1.7,
+                        fontSize: '1rem',
+                        color: '#64748b',
+                        lineHeight: 1.6,
                     }}>
                         Access thousands of manuscripts, collaborate with researchers worldwide, and contribute to preserving traditional wisdom.
                     </p>
