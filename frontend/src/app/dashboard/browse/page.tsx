@@ -211,7 +211,7 @@ const ManuscriptCard = ({ manuscript }: { manuscript: Manuscript }) => (
             borderTop: '1px solid #f1f5f9',
             marginTop: 'auto',
         }}>
-            <Link href={`/manuscripts/${manuscript._id}`} style={{
+            <Link href={`/dashboard/manuscripts/${manuscript._id}`} style={{
                 flex: 1,
                 display: 'inline-flex',
                 alignItems: 'center',

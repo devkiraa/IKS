@@ -51,7 +51,7 @@ export const manuscriptSchema = z.object({
     subject: z.array(z.string()).min(1, 'At least one subject is required'),
     category: z.string().min(1, 'Category is required'),
     subcategory: z.string().optional(),
-    language: z.array(z.string()).min(1, 'At least one language is required'),
+    languages: z.array(z.string()).min(1, 'At least one language is required'),
     script: z.array(z.string()).optional(),
     material: z.string().optional(),
     format: z.string().optional(),

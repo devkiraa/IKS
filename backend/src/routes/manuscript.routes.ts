@@ -1,6 +1,6 @@
 import { Router } from 'express';
 import * as manuscriptController from '../controllers/manuscript.controller.js';
-import { authenticate, optionalAuth, requireUser, requireOwner } from '../middleware/index.js';
+import { authenticate, optionalAuth, requireOwner } from '../middleware/index.js';
 import { validateBody, validateQuery } from '../middleware/index.js';
 import { manuscriptUpload, uploadLimiter, downloadLimiter } from '../middleware/index.js';
 import { manuscriptSchema, searchSchema } from '../utils/validators.js';
@@ -13,7 +13,7 @@ router.get('/filters', manuscriptController.getFilters);
 router.get('/:id', optionalAuth, manuscriptController.getById);
 
 // Protected routes
-router.post('/', authenticate, requireUser, validateBody(manuscriptSchema), manuscriptController.create);
+router.post('/', authenticate, validateBody(manuscriptSchema), manuscriptController.create);
 router.put('/:id', authenticate, manuscriptController.update);
 router.delete('/:id', authenticate, manuscriptController.remove);
 

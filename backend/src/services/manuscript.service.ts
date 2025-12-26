@@ -10,7 +10,7 @@ interface ManuscriptInput {
     author?: string;
     category: string;
     subject: string[];
-    language: string[];
+    languages: string[];
     script?: string[];
     material?: string;
     format?: string;
@@ -422,7 +422,7 @@ export async function getFilterOptions(): Promise<{
     const [categories, languages, scripts, materials, centuries, origins, repositories] =
         await Promise.all([
             Manuscript.distinct('category', query),
-            Manuscript.distinct('language', query),
+            Manuscript.distinct('languages', query),
             Manuscript.distinct('script', query),
             Manuscript.distinct('material', query),
             Manuscript.distinct('centuryEstimate', query),
@@ -432,7 +432,7 @@ export async function getFilterOptions(): Promise<{
 
     return {
         categories: categories.filter(Boolean).sort(),
-        languages: languages.filter(Boolean).sort(),
+        languages: (languages as string[]).filter(Boolean).sort(),
         scripts: scripts.filter(Boolean).sort(),
         materials: materials.filter(Boolean).sort(),
         centuries: centuries.filter(Boolean).sort(),

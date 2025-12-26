@@ -63,7 +63,7 @@ export async function getById(req: Request, res: Response): Promise<void> {
         author: manuscript.author,
         category: manuscript.category,
         subject: manuscript.subject,
-        language: manuscript.language,
+        languages: manuscript.languages,
         material: manuscript.material,
         centuryEstimate: manuscript.centuryEstimate,
         origin: manuscript.origin,
@@ -75,6 +75,7 @@ export async function getById(req: Request, res: Response): Promise<void> {
         keywords: manuscript.keywords,
         tags: manuscript.tags,
         coverThumbnail: manuscript.coverThumbnail,
+        ownerId: manuscript.ownerId,
     };
 
     // If user is owner or has content access, include more details

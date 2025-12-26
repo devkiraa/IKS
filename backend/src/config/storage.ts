@@ -1,89 +1,113 @@
-import {
-    S3Client,
-    PutObjectCommand,
-    GetObjectCommand,
-    DeleteObjectCommand,
-    HeadObjectCommand,
-} from '@aws-sdk/client-s3';
-import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
+import fs from 'fs';
+import path from 'path';
+import { fileURLToPath } from 'url';
 import { config } from './index.js';
 
-// S3/MinIO Client
-export const s3Client = new S3Client({
-    endpoint: config.storage.endpoint,
-    region: config.storage.region,
-    credentials: {
-        accessKeyId: config.storage.accessKey,
-        secretAccessKey: config.storage.secretKey,
-    },
-    forcePathStyle: true, // Required for MinIO
-});
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
-export const storageBucket = config.storage.bucket;
+// Get the absolute path for local storage
+const getLocalStoragePath = (): string => {
+    const storagePath = path.resolve(__dirname, '..', '..', config.storage.localPath);
+    // Ensure the directory exists
+    if (!fs.existsSync(storagePath)) {
+        fs.mkdirSync(storagePath, { recursive: true });
+    }
+    return storagePath;
+};
 
-// Helper functions for S3 operations
+// Initialize storage directory on module load
+const STORAGE_PATH = getLocalStoragePath();
+console.log(`📁 Local storage initialized at: ${STORAGE_PATH}`);
+
+/**
+ * Upload a file to local storage
+ */
 export const uploadToStorage = async (
     key: string,
     body: Buffer,
-    contentType: string,
-    metadata?: Record<string, string>
+    _contentType?: string,
+    _metadata?: Record<string, string>
 ): Promise<void> => {
-    const command = new PutObjectCommand({
-        Bucket: storageBucket,
-        Key: key,
-        Body: body,
-        ContentType: contentType,
-        Metadata: metadata,
-    });
-    await s3Client.send(command);
+    const filePath = path.join(STORAGE_PATH, key);
+
+    // Ensure subdirectory exists
+    const dir = path.dirname(filePath);
+    if (!fs.existsSync(dir)) {
+        fs.mkdirSync(dir, { recursive: true });
+    }
+
+    await fs.promises.writeFile(filePath, body);
 };
 
+/**
+ * Get a file from local storage
+ */
 export const getFromStorage = async (key: string): Promise<Buffer> => {
-    const command = new GetObjectCommand({
-        Bucket: storageBucket,
-        Key: key,
-    });
-    const response = await s3Client.send(command);
-    const chunks: Uint8Array[] = [];
+    const filePath = path.join(STORAGE_PATH, key);
 
-    if (response.Body) {
-        const stream = response.Body as AsyncIterable<Uint8Array>;
-        for await (const chunk of stream) {
-            chunks.push(chunk);
-        }
+    if (!fs.existsSync(filePath)) {
+        throw new Error(`File not found: ${key}`);
     }
 
-    return Buffer.concat(chunks);
+    return fs.promises.readFile(filePath);
 };
 
+/**
+ * Delete a file from local storage
+ */
 export const deleteFromStorage = async (key: string): Promise<void> => {
-    const command = new DeleteObjectCommand({
-        Bucket: storageBucket,
-        Key: key,
-    });
-    await s3Client.send(command);
-};
+    const filePath = path.join(STORAGE_PATH, key);
 
-export const getSignedDownloadUrl = async (
-    key: string,
-    expiresIn: number = 3600
-): Promise<string> => {
-    const command = new GetObjectCommand({
-        Bucket: storageBucket,
-        Key: key,
-    });
-    return getSignedUrl(s3Client, command, { expiresIn });
-};
-
-export const objectExists = async (key: string): Promise<boolean> => {
-    try {
-        const command = new HeadObjectCommand({
-            Bucket: storageBucket,
-            Key: key,
-        });
-        await s3Client.send(command);
-        return true;
-    } catch {
-        return false;
+    if (fs.existsSync(filePath)) {
+        await fs.promises.unlink(filePath);
     }
+};
+
+/**
+ * Check if a file exists in local storage
+ */
+export const objectExists = async (key: string): Promise<boolean> => {
+    const filePath = path.join(STORAGE_PATH, key);
+    return fs.existsSync(filePath);
+};
+
+/**
+ * Get the full file path for a storage key
+ */
+export const getFilePath = (key: string): string => {
+    return path.join(STORAGE_PATH, key);
+};
+
+/**
+ * Get a readable stream for a file (for efficient serving)
+ */
+export const getFileStream = (key: string): fs.ReadStream => {
+    const filePath = path.join(STORAGE_PATH, key);
+    if (!fs.existsSync(filePath)) {
+        throw new Error(`File not found: ${key}`);
+    }
+    return fs.createReadStream(filePath);
+};
+
+/**
+ * Get file stats (size, modified time, etc.)
+ */
+export const getFileStats = async (key: string): Promise<fs.Stats> => {
+    const filePath = path.join(STORAGE_PATH, key);
+    return fs.promises.stat(filePath);
+};
+
+/**
+ * Get storage directory info
+ */
+export const getStorageInfo = () => ({
+    path: STORAGE_PATH,
+    type: 'local',
+});
+
+// Legacy export for compatibility (no-op in local storage)
+export const storageBucket = 'local';
+export const getSignedDownloadUrl = async (key: string): Promise<string> => {
+    return getFilePath(key);
 };

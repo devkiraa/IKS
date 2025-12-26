@@ -130,7 +130,7 @@ const RequestRow = ({ request }: { request: AccessRequest }) => {
                 {new Date(request.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
             </div>
 
-            <Link href={`/manuscripts/${request.manuscript_id}`} style={{
+            <Link href={`/dashboard/manuscripts/${request.manuscript_id}`} style={{
                 padding: '0.5rem 0.75rem',
                 fontSize: '0.8125rem',
                 fontWeight: 500,
@@ -256,7 +256,7 @@ export default function RequestsPage() {
                         <RefreshIcon />
                         Refresh
                     </button>
-                    <Link href="/manuscripts" style={{
+                    <Link href="/dashboard/browse" style={{
                         display: 'inline-flex',
                         alignItems: 'center',
                         gap: '0.5rem',
@@ -440,7 +440,7 @@ export default function RequestsPage() {
                         }}>
                             Browse the manuscript archive to request access to restricted materials
                         </p>
-                        <Link href="/manuscripts" style={{
+                        <Link href="/dashboard/browse" style={{
                             display: 'inline-flex',
                             padding: '0.5rem 1rem',
                             fontSize: '0.875rem',

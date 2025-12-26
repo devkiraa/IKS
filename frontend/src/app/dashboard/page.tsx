@@ -537,7 +537,7 @@ export default function DashboardPage() {
                             <p style={{ marginTop: '0.5rem', fontSize: '0.875rem' }}>
                                 No access requests yet
                             </p>
-                            <Link href="/manuscripts" style={{
+                            <Link href="/dashboard/browse" style={{
                                 display: 'inline-block',
                                 marginTop: '1rem',
                                 padding: '0.5rem 1rem',
@@ -629,7 +629,7 @@ export default function DashboardPage() {
                         </h3>
                         <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
                             <Link
-                                href="/manuscripts"
+                                href="/dashboard/browse"
                                 style={{
                                     display: 'flex',
                                     alignItems: 'center',

@@ -51,6 +51,14 @@ const BellIcon = () => (
     </svg>
 );
 
+const FileCheckIcon = () => (
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+        <path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z" />
+        <polyline points="14 2 14 8 20 8" />
+        <path d="m9 15 2 2 4-4" />
+    </svg>
+);
+
 const LoadingSpinner = () => (
     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" style={{ animation: 'spin 1s linear infinite' }}>
         <circle cx="12" cy="12" r="10" opacity="0.25" />
@@ -61,7 +69,7 @@ const LoadingSpinner = () => (
 
 export default function SettingsPage() {
     const router = useRouter();
-    const [activeTab, setActiveTab] = useState<'profile' | 'security' | 'notifications'>('profile');
+    const [activeTab, setActiveTab] = useState<'profile' | 'security' | 'verification' | 'notifications'>('profile');
     const [user, setUser] = useState<User | null>(null);
     const [sessions, setSessions] = useState<Session[]>([]);
     const [loading, setLoading] = useState(true);
@@ -81,6 +89,11 @@ export default function SettingsPage() {
     const [newPassword, setNewPassword] = useState('');
     const [confirmPassword, setConfirmPassword] = useState('');
     const [changingPassword, setChangingPassword] = useState(false);
+
+    // Verification states
+    const [idType, setIdType] = useState('PAN_CARD');
+    const [idFile, setIdFile] = useState<File | null>(null);
+    const [uploadingId, setUploadingId] = useState(false);
 
     const fetchUserData = async () => {
         try {
@@ -215,9 +228,54 @@ export default function SettingsPage() {
         }
     };
 
+    const handleUploadIdentity = async (e: React.FormEvent) => {
+        e.preventDefault();
+        if (!idFile) {
+            setError('Please select a file to upload');
+            return;
+        }
+
+        setUploadingId(true);
+        setError('');
+        setSuccess('');
+
+        try {
+            const formData = new FormData();
+            formData.append('document', idFile);
+            formData.append('documentType', idType);
+
+            const tokens = localStorage.getItem('auth_tokens');
+            const { accessToken } = tokens ? JSON.parse(tokens) : {};
+
+            const response = await fetch(getApiUrl('/users/me/identity'), {
+                method: 'POST',
+                headers: {
+                    'Authorization': `Bearer ${accessToken}`,
+                },
+                body: formData,
+            });
+
+            const data = await response.json();
+
+            if (data.success) {
+                setSuccess('Identity document uploaded successfully. It is now pending verification.');
+                setIdFile(null);
+                fetchUserData();
+            } else {
+                setError(data.error || 'Failed to upload document');
+            }
+        } catch (err) {
+            console.error('Upload error:', err);
+            setError('Failed to upload document. Please try again.');
+        } finally {
+            setUploadingId(false);
+        }
+    };
+
     const tabs = [
         { id: 'profile' as const, label: 'Profile', icon: <UserIcon /> },
         { id: 'security' as const, label: 'Security', icon: <ShieldIcon /> },
+        { id: 'verification' as const, label: 'ID Verification', icon: <FileCheckIcon /> },
         { id: 'notifications' as const, label: 'Notifications', icon: <BellIcon /> },
     ];
 
@@ -763,6 +821,163 @@ export default function SettingsPage() {
                                     )}
                                 </div>
                             </div>
+                        </div>
+                    )}
+
+                    {activeTab === 'verification' && (
+                        <div>
+                            <h2 style={{
+                                fontSize: '1.125rem',
+                                fontWeight: 600,
+                                color: '#0f172a',
+                                marginBottom: '1.5rem',
+                            }}>
+                                Identity Verification
+                            </h2>
+
+                            <div style={{
+                                padding: '1.5rem',
+                                background: user?.verification_status === 'VERIFIED' ? '#f0fdf4' : '#f8fafc',
+                                border: `1px solid ${user?.verification_status === 'VERIFIED' ? '#bbf7d0' : '#e5e7eb'}`,
+                                borderRadius: '12px',
+                                marginBottom: '2rem',
+                            }}>
+                                <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', marginBottom: '1rem' }}>
+                                    <div style={{
+                                        width: '40px',
+                                        height: '40px',
+                                        borderRadius: '50%',
+                                        background: user?.verification_status === 'VERIFIED' ? '#166534' :
+                                            user?.verification_status === 'PENDING' ? '#b45309' : '#64748b',
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                        justifyContent: 'center',
+                                        color: 'white'
+                                    }}>
+                                        <ShieldIcon />
+                                    </div>
+                                    <div>
+                                        <div style={{ fontWeight: 600, color: '#0f172a' }}>
+                                            Status: {user?.verification_status || 'NOT_STARTED'}
+                                        </div>
+                                        <p style={{ fontSize: '0.8125rem', color: '#64748b', margin: 0 }}>
+                                            {user?.verification_status === 'VERIFIED' ?
+                                                'Your identity has been verified. You can now request manuscript access.' :
+                                                user?.verification_status === 'PENDING' ?
+                                                    'Your document is currently being reviewed by our administrators.' :
+                                                    'Please upload a valid identity document to request access to restricted manuscripts.'
+                                            }
+                                        </p>
+                                    </div>
+                                </div>
+                            </div>
+
+                            {user?.verification_status !== 'VERIFIED' && user?.verification_status !== 'PENDING' && (
+                                <form onSubmit={handleUploadIdentity}>
+                                    <div style={{ marginBottom: '1.5rem' }}>
+                                        <label style={{
+                                            display: 'block',
+                                            fontSize: '0.875rem',
+                                            fontWeight: 500,
+                                            color: '#0f172a',
+                                            marginBottom: '0.5rem',
+                                        }}>
+                                            Document Type
+                                        </label>
+                                        <select
+                                            value={idType}
+                                            onChange={(e) => setIdType(e.target.value)}
+                                            style={{
+                                                width: '100%',
+                                                maxWidth: '400px',
+                                                height: '44px',
+                                                padding: '0 0.875rem',
+                                                fontSize: '0.9375rem',
+                                                border: '1px solid #e5e7eb',
+                                                borderRadius: '0.5rem',
+                                                background: 'white',
+                                                outline: 'none',
+                                            }}
+                                        >
+                                            <option value="PAN_CARD">PAN Card</option>
+                                            <option value="AADHAAR_CARD">Aadhaar Card</option>
+                                            <option value="PASSPORT">Passport</option>
+                                            <option value="VOTER_ID">Voter ID</option>
+                                            <option value="INSTITUTIONAL_ID">Institutional ID</option>
+                                        </select>
+                                    </div>
+
+                                    <div style={{ marginBottom: '2rem' }}>
+                                        <label style={{
+                                            display: 'block',
+                                            fontSize: '0.875rem',
+                                            fontWeight: 500,
+                                            color: '#0f172a',
+                                            marginBottom: '0.5rem',
+                                        }}>
+                                            Upload Document (PDF or Image, max 5MB)
+                                        </label>
+                                        <div style={{
+                                            width: '100%',
+                                            maxWidth: '400px',
+                                            padding: '2rem',
+                                            border: '2px dashed #e5e7eb',
+                                            borderRadius: '12px',
+                                            textAlign: 'center',
+                                            background: '#f8fafc',
+                                            cursor: 'pointer',
+                                            position: 'relative'
+                                        }}>
+                                            <input
+                                                type="file"
+                                                accept=".pdf,.jpg,.jpeg,.png"
+                                                onChange={(e) => setIdFile(e.target.files?.[0] || null)}
+                                                style={{
+                                                    position: 'absolute',
+                                                    inset: 0,
+                                                    opacity: 0,
+                                                    cursor: 'pointer',
+                                                }}
+                                            />
+                                            <div style={{ color: '#64748b' }}>
+                                                {idFile ? (
+                                                    <div style={{ color: '#059669', fontWeight: 500 }}>
+                                                        {idFile.name}
+                                                    </div>
+                                                ) : (
+                                                    <>
+                                                        <FileCheckIcon />
+                                                        <div style={{ marginTop: '0.5rem', fontSize: '0.875rem' }}>
+                                                            Click to select or drag and drop
+                                                        </div>
+                                                    </>
+                                                )}
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <button
+                                        type="submit"
+                                        disabled={uploadingId}
+                                        style={{
+                                            display: 'inline-flex',
+                                            alignItems: 'center',
+                                            gap: '0.5rem',
+                                            padding: '0.625rem 1.5rem',
+                                            fontSize: '0.875rem',
+                                            fontWeight: 500,
+                                            color: 'white',
+                                            background: uploadingId ? '#6ee7b7' : '#059669',
+                                            border: 'none',
+                                            borderRadius: '0.5rem',
+                                            cursor: uploadingId ? 'not-allowed' : 'pointer',
+                                        }}
+                                    >
+                                        {uploadingId && <LoadingSpinner />}
+                                        {uploadingId ? 'Uploading...' : 'Upload Document'}
+                                    </button>
+                                </form>
+                            )}
                         </div>
                     )}
 

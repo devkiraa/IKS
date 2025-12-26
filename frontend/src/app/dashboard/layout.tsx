@@ -153,6 +153,7 @@ const getNavSections = (role: UserRole): NavSection[] => {
             title: 'Administration',
             items: [
                 { href: '/dashboard/admin/users', label: 'User Management', icon: <UsersIcon /> },
+                { href: '/dashboard/admin/verifications', label: 'ID Verifications', icon: <ShieldIcon /> },
                 { href: '/dashboard/admin/manuscripts', label: 'All Manuscripts', icon: <ArchiveIcon /> },
                 { href: '/dashboard/admin/requests', label: 'Access Requests', icon: <RequestsIcon /> },
                 { href: '/dashboard/admin/reviews', label: 'Review Queue', icon: <ReviewIcon />, badge: 'Active' },
@@ -199,7 +200,6 @@ const getNavSections = (role: UserRole): NavSection[] => {
             { href: '/dashboard/manuscripts', label: 'My Manuscripts', icon: <ManuscriptsIcon /> },
             { href: '/dashboard/bookmarks', label: 'Bookmarks', icon: <BookmarkIcon /> },
             { href: '/dashboard/requests', label: 'My Requests', icon: <RequestsIcon /> },
-            { href: '/dashboard/activity', label: 'Activity', icon: <ActivityIcon /> },
         ];
 
         // If they are specifically an OWNER role in the backend, they might need to manage incoming requests

@@ -66,10 +66,10 @@ interface NavItem {
 
 const mainNavItems: NavItem[] = [
     { href: '/dashboard', label: 'Dashboard', icon: <DashboardIcon /> },
-    { href: '/dashboard/manuscripts', label: 'Manuscripts', icon: <ManuscriptsIcon /> },
+    { href: '/dashboard/browse', label: 'Browse Archive', icon: <DashboardIcon /> },
+    { href: '/dashboard/manuscripts', label: 'My Manuscripts', icon: <ManuscriptsIcon /> },
     { href: '/dashboard/bookmarks', label: 'Bookmarks', icon: <BookmarkIcon /> },
-    { href: '/dashboard/requests', label: 'Requests', icon: <RequestsIcon /> },
-    { href: '/dashboard/activity', label: 'Activity', icon: <ActivityIcon /> },
+    { href: '/dashboard/requests', label: 'Access Requests', icon: <RequestsIcon /> },
 ];
 
 const bottomNavItems: NavItem[] = [

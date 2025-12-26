@@ -19,7 +19,7 @@ export interface IManuscript {
     subject: string[];
     category: string;
     subcategory?: string;
-    language: string[];
+    languages: string[];
     script?: string[];
 
     // Physical description
@@ -118,7 +118,7 @@ const ManuscriptSchema = new Schema<IManuscript>(
         subject: [{ type: String, index: true }],
         category: { type: String, required: true, index: true },
         subcategory: { type: String },
-        language: [{ type: String, required: true, index: true }],
+        languages: [{ type: String, required: true, index: true }],
         script: [{ type: String, index: true }],
         material: { type: String, index: true },
         format: { type: String },
@@ -196,9 +196,10 @@ const ManuscriptSchema = new Schema<IManuscript>(
 );
 
 // Compound text index for search
+// Using language_override to avoid conflict with the 'language' field (which is an array of manuscript languages)
 ManuscriptSchema.index(
     { title: 'text', alternateTitle: 'text', author: 'text', abstract: 'text', keywords: 'text' },
-    { weights: { title: 10, author: 5, keywords: 3, abstract: 1 } }
+    { weights: { title: 10, author: 5, keywords: 3, abstract: 1 }, language_override: 'textSearchLanguage' }
 );
 
 // Cache the model instance
