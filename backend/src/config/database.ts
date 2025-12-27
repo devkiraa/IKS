@@ -249,6 +249,20 @@ async function initializePostgresTables(): Promise<void> {
       UNIQUE(user_id, manuscript_id)
     );
 
+    -- App Settings table (for watermark and other configs)
+    CREATE TABLE IF NOT EXISTS app_settings (
+      key VARCHAR(100) PRIMARY KEY,
+      value JSONB NOT NULL,
+      updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+      updated_by UUID REFERENCES users(id)
+    );
+
+    -- Insert default watermark settings if not exists
+    INSERT INTO app_settings (key, value) VALUES (
+      'watermark',
+      '{"text": "Amrita Vishwa Vidyapeetham Kochi", "enabled": true, "fontSize": 14, "opacity": 0.15, "position": "diagonal", "color": "#808080", "includeUserId": true, "includeTimestamp": true}'::jsonb
+    ) ON CONFLICT (key) DO NOTHING;
+
     -- Create indexes
     CREATE INDEX IF NOT EXISTS idx_users_email ON users(email);
     CREATE INDEX IF NOT EXISTS idx_users_role ON users(role);

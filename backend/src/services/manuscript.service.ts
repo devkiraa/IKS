@@ -193,8 +193,49 @@ export async function uploadManuscriptFile(
         };
     }
 
-    // Encrypt file
-    const { encryptedContent, checksum } = await encryptFile(file.buffer);
+    // Determine file type
+    let fileType: 'pdf' | 'image' | 'text' = 'text';
+    if (file.mimetype === 'application/pdf') {
+        fileType = 'pdf';
+    } else if (file.mimetype.startsWith('image/')) {
+        fileType = 'image';
+    }
+
+    // Apply watermark immediately on upload for PDFs and images
+    let contentToStore = file.buffer;
+
+    // Import watermark functions dynamically to avoid circular dependencies
+    const { watermarkPdf, watermarkImage } = await import('./watermark.service.js');
+    const { getWatermarkSettings } = await import('../repositories/settings.repository.js');
+
+    const watermarkSettings = await getWatermarkSettings();
+
+    if (watermarkSettings.enabled && (fileType === 'pdf' || fileType === 'image')) {
+        const uploadWatermarkOptions = {
+            userId: 'system',
+            userEmail: '', // No user email on upload watermark
+            userName: 'Archive Upload',
+            watermarkId: `upload-${manuscriptId.substring(0, 8)}`,
+            timestamp: new Date(),
+            institution: watermarkSettings.text, // Use institution text from settings
+        };
+
+        try {
+            if (fileType === 'pdf') {
+                contentToStore = await watermarkPdf(file.buffer, uploadWatermarkOptions);
+            } else if (fileType === 'image') {
+                contentToStore = await watermarkImage(file.buffer, uploadWatermarkOptions);
+            }
+            console.log(`✓ Applied watermark to uploaded ${fileType}: "${watermarkSettings.text}"`);
+        } catch (watermarkError) {
+            console.error('Watermark application failed, storing without watermark:', watermarkError);
+            // Continue with original content if watermarking fails
+            contentToStore = file.buffer;
+        }
+    }
+
+    // Encrypt file (now watermarked)
+    const { encryptedContent, checksum } = await encryptFile(contentToStore);
 
     // Upload to storage
     const fileId = uuidv4();
@@ -206,20 +247,12 @@ export async function uploadManuscriptFile(
         checksum,
     });
 
-    // Determine file type
-    let fileType: 'pdf' | 'image' | 'text' = 'text';
-    if (file.mimetype === 'application/pdf') {
-        fileType = 'pdf';
-    } else if (file.mimetype.startsWith('image/')) {
-        fileType = 'image';
-    }
-
     // Add file to manuscript
     const fileData = {
         type: fileType,
         originalName: file.originalname,
         mimeType: file.mimetype,
-        size: file.size,
+        size: contentToStore.length, // Use watermarked content size
         encryptedPath: storagePath,
         checksum,
         uploadedAt: new Date(),

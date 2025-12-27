@@ -164,6 +164,7 @@ const getNavSections = (role: UserRole): NavSection[] => {
             items: [
                 { href: '/dashboard/admin/analytics', label: 'Analytics', icon: <AnalyticsIcon /> },
                 { href: '/dashboard/admin/audit', label: 'Audit Logs', icon: <ShieldIcon /> },
+                { href: '/dashboard/admin/watermark', label: 'Watermark Settings', icon: <SettingsIcon /> },
             ],
         });
         return sections;

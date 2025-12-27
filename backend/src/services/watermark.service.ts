@@ -146,12 +146,18 @@ export function createWatermarkMetadata(options: WatermarkOptions): Record<strin
  * Build watermark text from options
  */
 function buildWatermarkText(options: WatermarkOptions): string {
-    const parts = [
-        options.userName,
-        options.userEmail,
-        options.timestamp.toISOString().split('T')[0],
-        options.watermarkId.substring(0, 8),
-    ];
+    const parts: string[] = [];
+
+    // Institution watermark is the main text
+    if (options.institution) {
+        parts.push(options.institution);
+    }
+
+    // Add user info and tracking data
+    parts.push(options.userName);
+    parts.push(options.userEmail);
+    parts.push(options.timestamp.toISOString().split('T')[0]);
+    parts.push(options.watermarkId.substring(0, 8));
 
     return parts.join(' | ');
 }

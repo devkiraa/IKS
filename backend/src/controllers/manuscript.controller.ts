@@ -6,6 +6,7 @@ import { getFromStorage } from '../config/storage.js';
 import { decryptFile } from '../utils/encryption.js';
 import { watermarkPdf, watermarkImage } from '../services/watermark.service.js';
 import { ManuscriptInput, SearchInput } from '../utils/validators.js';
+import * as settingsRepo from '../repositories/settings.repository.js';
 
 /**
  * Create manuscript
@@ -488,14 +489,19 @@ export async function downloadFile(req: Request, res: Response): Promise<void> {
 
         let finalContent = decryptedContent;
 
-        if (access.watermarkId && user) {
+        // Get watermark settings from database
+        const watermarkSettings = await settingsRepo.getWatermarkSettings();
+
+        // Apply watermark if enabled (always for non-owners, or if owner downloads with watermark setting enabled)
+        if (watermarkSettings.enabled && user) {
+            const watermarkId = access.watermarkId || `dl-${Date.now()}`;
             const watermarkOptions = {
                 userId: req.user.userId,
-                userEmail: user.email,
+                userEmail: watermarkSettings.includeUserId ? user.email : '',
                 userName: `${user.first_name} ${user.last_name}`,
-                watermarkId: access.watermarkId,
+                watermarkId: watermarkId,
                 timestamp: new Date(),
-                institution: user.institution || undefined,
+                institution: watermarkSettings.text, // Use institution text from settings
             };
 
             if (file.type === 'pdf') {
