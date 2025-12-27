@@ -60,12 +60,27 @@ export async function createManuscript(
     };
 }
 
+// In-memory view tracking to prevent duplicate counts (expires after 1 hour)
+const viewTracker: Map<string, number> = new Map();
+const VIEW_COOLDOWN_MS = 60 * 60 * 1000; // 1 hour
+
+// Cleanup old entries periodically
+setInterval(() => {
+    const now = Date.now();
+    for (const [key, timestamp] of viewTracker.entries()) {
+        if (now - timestamp > VIEW_COOLDOWN_MS) {
+            viewTracker.delete(key);
+        }
+    }
+}, 5 * 60 * 1000); // Cleanup every 5 minutes
+
 /**
  * Get manuscript by ID
  */
 export async function getManuscriptById(
     id: string,
-    userId?: string
+    userId?: string,
+    ipAddress?: string
 ): Promise<ManuscriptResult> {
     const Manuscript = getManuscriptModel();
 
@@ -79,8 +94,15 @@ export async function getManuscriptById(
         };
     }
 
-    // Increment view count
-    await Manuscript.updateOne({ _id: id }, { $inc: { viewCount: 1 } });
+    // Only increment view count if not recently viewed by this user/IP
+    const viewKey = `${id}:${userId || ipAddress || 'anonymous'}`;
+    const lastViewed = viewTracker.get(viewKey);
+    const now = Date.now();
+
+    if (!lastViewed || (now - lastViewed) > VIEW_COOLDOWN_MS) {
+        await Manuscript.updateOne({ _id: id }, { $inc: { viewCount: 1 } });
+        viewTracker.set(viewKey, now);
+    }
 
     return {
         success: true,

@@ -41,8 +41,9 @@ export async function create(req: Request, res: Response): Promise<void> {
 export async function getById(req: Request, res: Response): Promise<void> {
     const { id } = req.params;
     const userId = req.user?.userId;
+    const ipAddress = req.ip || req.socket.remoteAddress || 'unknown';
 
-    const result = await manuscriptService.getManuscriptById(id, userId);
+    const result = await manuscriptService.getManuscriptById(id, userId, ipAddress);
 
     if (!result.success) {
         res.status(404).json({
